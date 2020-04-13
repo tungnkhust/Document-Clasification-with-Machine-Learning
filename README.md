@@ -9,7 +9,7 @@ Thành viên nhóm:
 4. Nguyễn Kỳ Tùng       20173455    Viện Công nghệ thông tin và truyền thông Đại học Bách Khoa Hà Nội
 
 Đề tài: Phần loại văn bản tiếng anh
-Giới thiệu đề tài:
+<br>Giới thiệu đề tài:
 
 ## Dữ liệu
 Bộ dữ liệu sử dụng là bộ data Reuters10 được tách ra từ bộ data bộ dữ liệu Reuters-21578 từ trang  Martin Thoma: https://martin-thoma.com/nlp-reuters/
@@ -22,20 +22,22 @@ Gồm 7193 training documents, 2787 testing documents.
 Dữ liệu được chia thành 2 folders train và test.
 Trong mỗi folder sẽ được tổ chức thành 10 folders con.
 Mỗi folder sẽ chứa các samples dưới dạng file .txt tương ứng với class đó.
-Thống kế dữ liệu:
-Class_name      num_of_documents(train)     num_of_documents(test)      mean_num_words_in_train
-earn            2877
-acq             1650
-mony-fx         538
-grain           433
-crude           389
-trade           369
-interest        347
-wheat           212
-ship            197
-corn            187
+<br>Thống kế dữ liệu:
+<br>Class_name      num_of_documents(train)     num_of_documents(test)      mean_num_words_in_train
+<br>earn            2877
+<br>acq             1650
+<br>mony-fx         538
+<br>grain           433
+<br>crude           389
+<br>trade           369
+<br>interest        347
+<br>wheat           212
+<br>ship            197
+<br>corn            187
 
 Lưu trữ: https://drive.google.com/open?id=1BbwomSsHt0bdIyH_iFJXGtDNmw875BZ3
+
+## Kết quả thử nghiệm
 
 ## Cài đặt môi trường
 
