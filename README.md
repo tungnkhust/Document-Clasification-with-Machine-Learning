@@ -10,7 +10,7 @@ Thành viên nhóm:
 |Nguyễn Hữu Anh Việt	   |20173465|
 |Nguyễn Kỳ Tùng	           |20173455|
 
-##Đề tài: Phần loại văn bản tiếng anh
+## Đề tài: Phần loại văn bản tiếng anh
 Giới thiệu đề tài:
 Phân loại văn bản là một bài toán điển hình trong lĩnh vực xử lý ngôn ngữ tự nhiên.
 Đây là một bài toán hay với độ phức tạp khác nhau phụ thuộc vào từng chủ đề riêng của bài toán và loại văn bản cần phân loại.
