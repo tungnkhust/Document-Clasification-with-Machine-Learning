@@ -51,7 +51,12 @@ pip install -r requirements.txt
 ## Mô hình đề xuất
 Do phận vi của môn học, chúng tôi xin đề xuất mô hình học máy SVM với việc sử dụng kỹ thuật tf-idf để trích xuất đặc trưng.
 
-[Mô hình](https://drive.google.com/file/d/1eXF66ReE1yYaeQChAbGnJwmo7CgAGEhu/view?usp=sharing)
+![](https://drive.google.com/file/d/1eXF66ReE1yYaeQChAbGnJwmo7CgAGEhu/view?usp=sharing)
+
+## Kết quả
+|Accuracy | F1 Score| Precision | Recall|
+|--- | ---| ---| ---|
+|0.8873 |0.7085 | 0.7272| 0.7034|
 
 Chi tiết về giải thuật và kết quả thực nghiệm [xem tại đây](https://docs.google.com/document/d/1Vt8y_zFxWrU_7HJq458iqukgXmM82HNTs8Mu0iuhesk/edit?usp=sharing)
 
@@ -90,7 +95,7 @@ stopword_file là danh sách các từ stopword, mặc định là "".
 kernel là kernel dùng trong giải thuật svm, nếu kernel là linear thì mô hình sử dụng LinearSCV() nếu không sẽ sử dụng SVC() với kernel tương ứng, mặc định là "linear".
 C là thông số điều chỉnh độ chịu lỗi của giải thuật svm, mặc định là 1.
 hier=True thì dùng mô hình phân cấp, mặc định là False.
-show_cm_matrix=True thì sẽ hiện thị 2 confusion matrix (nomalize, non-nomalize), mặc định là False.
+show_cm_matrix=True thì sẽ hiện thị 2 confusion matrix (nomalize, non-nomalize) sau khi chạy xong kết quả lưu trong thư mục results, mặc định là False.
 Chạy mặc định với lệnh sau:
 ```
 python train.py
