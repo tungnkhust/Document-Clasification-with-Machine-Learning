@@ -55,7 +55,42 @@ Chi tiết về giải thuật và kết quả thực nghiệm [xem tại đây]
 
 ## Chạy thử nghiệm
 Xử lý dữ liệu:
-`python preprocessing.py`
+```
+python preprocessing.py --train_dir data/Reuter10/train \
+--test_dir data/Reuter10/test \
+--cutoff 26 \
+--hier True
+```
 
+train_dir và test_dir là đường dẫn đến thư mục chưa dữ liệu trên và test mà khi tải dư liệu về lưu tại đó.
+cutoff là thông số để loại bỏ các từ xuất hiện không quá n lần, mặc định cutoff=0.
+hier là biến để xem có xử lý dữ liệu cho mô hình học phân cấp hay không, mặc định là False
+Có thể chạy mặc định với lệnh sau:
+
+```
+python preprocessing.py
+```
 Huấn luyện và đánh giá model:
-`python train.py`
+```
+python train.py --train_file data/full_data/data.csv \
+--test_file data/full_data/test.csv \
+--vocab_file vocab/vocab.csv \
+--stopword_file vocab/stopword.txt \
+--sublinear_tf True \
+--kernel 'linear' \
+--C 1 \
+--hier True \
+--seed 1337 \
+--show_cm_matrix True
+```
+vocab_file là danh sách các từ dùng làm từ điển, mặc định là "".
+stopword_file là danh sách các từ stopword, mặc định là "". 
+kernel là kernel dùng trong giải thuật svm, nếu kernel là linear thì mô hình sử dụng LinearSCV() nếu không sẽ sử dụng SVC() với kernel tương ứng, mặc định là "linear".
+C là thông số điều chỉnh độ chịu lỗi của giải thuật svm, mặc định là 1.
+hier=True thì dùng mô hình phân cấp, mặc định là False.
+show_cm_matrix=True thì sẽ hiện thị 2 confusion matrix (nomalize, non-nomalize), mặc định là False.
+Chạy mặc định với lệnh sau:
+```
+python train.py
+```
+

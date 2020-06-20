@@ -1,6 +1,7 @@
 import re
 import os
 import collections
+import argparse
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -29,6 +30,7 @@ def built_vocab(data_df, cutoff=25, outfile='vocab/vocab.csv'):
     vocab_df.to_csv(outfile, index=False)
     return vocab
 
+
 def folder_to_csv(pathdir=None, pathcsv="data/full_data/train.csv"):
     final_list = []
     labels = os.listdir(pathdir)
@@ -41,6 +43,46 @@ def folder_to_csv(pathdir=None, pathcsv="data/full_data/train.csv"):
             final_list.append({"text": text, "label": label})
     data_df = pd.DataFrame(final_list)
     data_df.to_csv(pathcsv, index=False)
+
+def make_hier_data(data_df_or_data_path, type='train'):
+    data_df = data_df_or_data_path
+    if isinstance(data_df_or_data_path, str):
+        if os.path.exists(data_df_or_data_path):
+            data_df = pd.read_csv(data_df_or_data_path)
+        else:
+            return None
+    corn_df = data_df[data_df.label == "corn"]
+    grain_df = data_df[data_df.label == "grain"]
+    wheat_df = data_df[data_df.label == "wheat"]
+    food_df = pd.concat([corn_df, grain_df, wheat_df])
+
+    interest_df = data_df[data_df.label == "interest"]
+    moneyfx_df = data_df[data_df.label == "money-fx"]
+    money_df = pd.concat([interest_df, moneyfx_df])
+
+    crude_df = data_df[data_df.label == "crude"]
+    ship_df = data_df[data_df.label == "ship"]
+    boat_df = pd.concat([crude_df, ship_df])
+
+    data_df['label'] = data_df.label.replace('grain', 'food')
+    data_df['label'] = data_df.label.replace('corn', 'food')
+    data_df['label'] = data_df.label.replace('wheat', 'food')
+    data_df['label'] = data_df.label.replace('interest', 'money')
+    data_df['label'] = data_df.label.replace('money-fx', 'money')
+    data_df['label'] = data_df.label.replace('crude', 'boat')
+    data_df['label'] = data_df.label.replace('ship', 'boat')
+
+    if os.path.exists('data/sub_data') is False:
+        os.mkdir('data/sub_data')
+
+    if os.path.exists('data/sub_data/' + type) is False:
+        os.mkdir('data/sub_data/' + type)
+
+    data_df.to_csv('data/sub_data/' + type + '/all.csv')
+    food_df.to_csv('data/sub_data/' + type + '/food.csv')
+    money_df.to_csv('data/sub_data/' + type + '/money.csv')
+    boat_df.to_csv('data/sub_data/' + type + '/boat.csv')
+    return data_df, food_df, money_df, boat_df
 
 def split_by_label(data_df, train_split=0.8):
     by_label = collections.defaultdict(list)
@@ -328,11 +370,13 @@ class DatasetProcessor(object):
 
 
 def main():
-    args = Namespace(
-        train_dir='data/Reuter10/train',
-        test_dir='data/Reuter10/test',
-        cutoff=26,
-    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--train_dir', type=str, default='data/Reuter10/train')
+    parser.add_argument('--test_dir', type=str, default='data/Reuter10/test')
+    parser.add_argument('--cutoff', type=int, default=26)
+    parser.add_argument('--hier', type=bool, default=False)
+    args = parser.parse_args()
+
     if os.path.exists('data/full_data') is False:
         os.mkdir('data/full_data')
     processor = TextProcessor()
@@ -351,5 +395,10 @@ def main():
             .lower()\
             .remove_dupspace()\
             .to_csv('data/full_data/test.csv')
+
+    if args.hier:
+        make_hier_data('data/full_data/data.csv', type='train')
+        make_hier_data('data/full_data/test.csv', type='test')
 if __name__ == '__main__':
     main()
+    print("Done!")
