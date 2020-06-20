@@ -24,6 +24,8 @@ def built_vocab(data_df, cutoff=25, outfile='vocab/vocab.csv'):
         if word_count >= cutoff:
             vocab.append(word)
     vocab_df = pd.DataFrame(vocab, columns=['vocab'])
+    if os.path.exists('vocab') is False:
+        os.mkdir('vocab')
     vocab_df.to_csv(outfile, index=False)
     return vocab
 
