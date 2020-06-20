@@ -31,7 +31,7 @@ Mỗi folder sẽ chứa các samples dưới dạng file .txt tương ứng v�
 
 Download dữ liệu từ link sau và lưu trong thư mục data:
 ```
-https://drive.google.com/open?id=1BbwomSsHt0bdIyH_iFJXGtDNmw875BZ3
+https://drive.google.com/file/d/1ViLpFpalxgxMVsf2HXvVvl1Fd2i_qnMw/view?usp=sharing
 ```
 
 ## Cài đặt môi trường
@@ -51,7 +51,7 @@ pip install -r requirements.txt
 ## Mô hình đề xuất
 Do phận vi của môn học, chúng tôi xin đề xuất mô hình học máy SVM với việc sử dụng kỹ thuật tf-idf để trích xuất đặc trưng.
 
-![](https://drive.google.com/file/d/1eXF66ReE1yYaeQChAbGnJwmo7CgAGEhu/view?usp=sharing)
+![Mô hình](https://drive.google.com/file/d/1eXF66ReE1yYaeQChAbGnJwmo7CgAGEhu/view?usp=sharing)
 
 ## Kết quả
 |Accuracy | F1 Score| Precision | Recall|
