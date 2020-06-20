@@ -35,7 +35,7 @@ class Classifier(object):
             
         if args.vocab_file != '':
             vocab = self.load_vocab(args.vocab_file)
-        self.vectorizer = TfidfVectorizer(vocabulary=vocab, stop_words=stopwords)
+        self.vectorizer = TfidfVectorizer(vocabulary=vocab, stop_words=stopwords, ngram_range=args.ngram_range, sublinear_tf=args.sublinear_tf)
 
         if args.kernel == 'linear':
             self.classifier = svm.LinearSVC(C=args.C, random_state=42)
@@ -107,6 +107,8 @@ def main():
         # feature extacter
         vocab_file='',
         stopword_file='',
+        ngram_range=(1, 1),
+        sublinear_tf=True,
 
         # SVM
         kernel='linear',
@@ -117,7 +119,6 @@ def main():
         seed=1337,
         expand_file=True
     )
-
     clf = Classifier(args)
     clf.train()
     clf.evaluate(args.test_file)
