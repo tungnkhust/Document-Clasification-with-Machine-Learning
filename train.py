@@ -1,10 +1,6 @@
-import itertools
-
 import numpy as np
 import pandas as pd
-
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import model_selection, naive_bayes, svm
@@ -12,121 +8,121 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.decomposition import TruncatedSVD, PCA
 from argparse import Namespace
-import matplotlib.pyplot as plt
 import os
 import pickle
+from utils import *
+from preprocessing import *
 
-args = Namespace(
-    # file_path
-    train_file='data/full_data/full_train_data.csv',
-    test_file='data/full_data/full_test_data.csv',
-    model_path='models/svm/',
-    model_file='svm_reuters_v{}.sav',
-    version=0.1,
-    # training
-    remove_stopword=True,
-    # option
-    seed=1337,
-    expand_file=True
-)
+class Classifier(object):
+    def __init__(self, args, processor: TextProcessor=None):
+        self.args = args
+        self.train_df = pd.read_csv(args.train_file)
+        self.texts = self.train_df.text.tolist()
+        self.labels = self.train_df.label.tolist()
+        self.labelencoder = LabelEncoder().fit(sorted(self.train_df.label.tolist()))
 
-if args.expand_file:
-    args.model_file = os.path.join(args.model_path, args.model_file.format(args.version))
+        vocab = None
+        stopwords = None
 
-english_stopword = list(stopwords.words('english'))
-np.random.seed(args.seed)
+        if processor is None:
+            processor = TextProcessor()
+        self.processor = processor
 
-# extract feature tf-idf
-train_df = pd.read_csv()
-train_text = train_df.text.to_list()
-train_target = train_df.category.to_list()
+        if args.stopword_file != '':
+            stopwords = self.load_stopword(args.stopword_file)
+            
+        if args.vocab_file != '':
+            vocab = self.load_vocab(args.vocab_file)
+        self.vectorizer = TfidfVectorizer(vocabulary=vocab, stop_words=stopwords)
 
-if args.remove_stopword:
-    tfidf = TfidfVectorizer(lowercase=True, stop_words=english_stopword)
-else:
-    tfidf = TfidfVectorizer(lowercase=True)
-tfidf.fit(train_text)
-train_tfidf = tfidf.transform(train_text)
-
-# encode label
-encoder = LabelEncoder()
-encoder.fit(train_target)
-y_train = encoder.transform(train_target)
-
-# training with LinearSVC()
-''' use SVM for classification'''
-SVM = svm.LinearSVC()
-SVM.fit(train_tfidf, y_train)
-
-# save model
-pickle.dump(SVM, open(args.model_file, 'wb'))
-
-del train_tfidf
-
-test_df = pd.read_csv('data/full_data/full_test_data.csv')
-test_text = train_df.text.to_list()
-test_target = train_df.category.to_list()
-y_test = LabelEncoder().fit_transform(test_target)
-test_tfidf = tfidf.transform(test_text)
-
-# evaluate model
-# Accuracy
-y_pred = SVM.predict(test_tfidf)
-print(SVM)
-print("SVM Accuracy Score -> ", accuracy_score(y_pred, y_test)*100)
-
-# Confusion matrix
-classes = encoder.classes_
-# print(classes)
-
-def plot_confusion_matrix(cm,
-                          target_names,
-                          title='Confusion matrix',
-                          cmap=None,
-                          normalize=True):
-
-    accuracy = np.trace(cm) / float(np.sum(cm))
-    misclass = 1 - accuracy
-
-    if cmap is None:
-        cmap = plt.get_cmap('Blues')
-
-    plt.figure(figsize=(8, 6))
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
-
-    if target_names is not None:
-        tick_marks = np.arange(len(target_names))
-        plt.xticks(tick_marks, target_names, rotation=45)
-        plt.yticks(tick_marks, target_names)
-
-    if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-
-    thresh = cm.max() / 1.5 if normalize else cm.max() / 2
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        if normalize:
-            plt.text(j, i, "{:0.2f}".format(cm[i, j]),
-                     horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black")
+        if args.kernel == 'linear':
+            self.classifier = svm.LinearSVC(C=args.C, random_state=42)
         else:
-            plt.text(j, i, "{:,}".format(cm[i, j]),
-                     horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black")
+            self.classifier = svm.SVC(C=args.C, kernel=args.kernel, gamma=args.gamma, random_state=42)
 
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label\naccuracy={:0.2f}; misclass={:0.2f}'.format(
-        accuracy, misclass))
-#     plt.show()
-    if not os.path.exists("results/"):
-        os.mkdir("results")
-    if normalize:
-        plt.savefig('results/confusion_matrix_normalize.png')
-    else:
-        plt.savefig('results/confusion_matrix.png')
-cm = confusion_matrix(y_true=y_test, y_pred=y_pred)
-plot_confusion_matrix(cm, normalize=True, target_names=classes, title="Confusion Matrix Reuters10 Classification(Normalize)")
-plot_confusion_matrix(cm, normalize=False, target_names=classes, title="Confusion Matrix Reuters10 Classification")
+    def train(self):
+        self.vectorizer.fit(self.train_df.text.tolist())
+        X = self.vectorizer.transform(self.texts)
+        self.classifier.fit(X, self.labelencoder.transform(self.labels))
+
+    def predict(self, text):
+        text = self.processor.transform(text)
+        tfidf = self.vectorizer.transform([text])
+        return self.classifier.predict([text])
+
+    def predict_all(self, raw_documents):
+        documents = [self.processor.transform(text) for text in raw_documents]
+        tfidf = self.vectorizer.transform(documents)
+        return self.classifier.predict(tfidf)
+
+    def sorce(self, raw_documents, y_targets):
+        documents = [self.processor.transform(text) for text in raw_documents]
+        tfidf = self.vectorizer.transform(documents)
+        return self.classifier.score(tfidf, y_targets)
+
+    def load_vocab(self, vocab_file):
+        vocab_df = pd.read_csv(vocab_file)
+        vocab = vocab_df.vocab.tolist()
+        return {word: index for index, word in enumerate(vocab)}
+
+    def load_stopword(self, stopword_file):
+        with open(stopword_file, 'r') as pf:
+            stopwords = pf.readlines()
+            stopwords = [word.replace('\n', '') for word in stopwords]
+        return stopwords
+
+    def evaluate(self, test_df_or_testfile):
+        test_df = test_df_or_testfile
+        if os.path.exists(test_df_or_testfile):
+            test_df = pd.read_csv(test_df_or_testfile)
+        texts = test_df.text.to_list()
+        labels = test_df.label.to_list()
+        y_labels = self.labelencoder.transform(labels)
+        y_pred = self.predict_all(texts)
+        print(self.classifier)
+        print("Accuracy Score: ", accuracy_score(y_true=y_labels, y_pred=y_pred) * 100)
+
+        classes = self.labelencoder.classes_
+        pred_labels = self.labelencoder.inverse_transform(y_pred)
+        cm = confusion_matrix(y_true=labels, y_pred=pred_labels, labels=classes)
+
+        plot_confusion_matrix(cm, normalize=False, target_names=classes,
+                              title="Confusion Matrix")
+
+        plot_confusion_matrix(cm, normalize=True, target_names=classes,
+                              title="Confusion Matrix(Normalize)")
+
+
+def main():
+    args = Namespace(
+        # file_path
+        train_file='data/full_data/data.csv',
+        test_file='data/full_data/test.csv',
+        model_path='model_storage/svm/',
+        model_file='svm_{}_v{}.pkl',
+        version=0.1,
+
+        # feature extacter
+        vocab_file='',
+        stopword_file='',
+
+        # SVM
+        kernel='linear',
+        C=1,
+        gammar=100,
+
+        # option
+        seed=1337,
+        expand_file=True
+    )
+
+    clf = Classifier(args)
+    clf.train()
+    clf.evaluate(args.test_file)
+
+if __name__ == '__main__':
+    main()
+
+

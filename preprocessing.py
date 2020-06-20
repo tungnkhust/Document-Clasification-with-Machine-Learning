@@ -139,6 +139,14 @@ class TextProcessor(object):
         text = self.lemmatize(text)
         return text
 
+    def transform(self, text):
+        """Process text for predict"""
+        text = self.remove_url(text)
+        text = self.remove_emoji(text)
+        text = self.remove_irr_char(text)
+        text = self.remove_dupspace(text)
+        return text
+
 class DatasetProcessor(object):
     def __init__(self, data_df, processor: TextProcessor=None, labelencoder=None):
         self.data_df = data_df
@@ -193,6 +201,7 @@ class DatasetProcessor(object):
     def nomalize_all_df(self):
         self.data_df["text"] = self.data_df["text"].apply(lambda x: self.processor.nomalize_all(x))
         return self
+
 
     @classmethod
     def from_csv(cls, file_path: str, processor:TextProcessor, delimiter:str=None, header:str='infer'):
