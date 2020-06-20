@@ -28,8 +28,10 @@ Gồm 7193 training documents, 2787 testing documents.
 Dữ liệu được chia thành 2 folders train và test.
 Trong mỗi folder sẽ được tổ chức thành 10 folders con.
 Mỗi folder sẽ chứa các samples dưới dạng file .txt tương ứng với class đó.
+
+Download dữ liệu từ link sau và lưu trong thư mục data:
 ```
-Link dữ liệu: https://drive.google.com/open?id=1BbwomSsHt0bdIyH_iFJXGtDNmw875BZ3
+https://drive.google.com/open?id=1BbwomSsHt0bdIyH_iFJXGtDNmw875BZ3
 ```
 
 ## Cài đặt môi trường
