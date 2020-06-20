@@ -24,8 +24,6 @@ def built_vocab(data_df, cutoff=25, outfile='vocab/vocab.csv'):
         if word_count >= cutoff:
             vocab.append(word)
     vocab_df = pd.DataFrame(vocab, columns=['vocab'])
-    if os.path.exists('vocab') is False:
-        os.mkdir('vocab')
     vocab_df.to_csv(outfile, index=False)
     return vocab
 
@@ -41,12 +39,6 @@ def folder_to_csv(pathdir=None, pathcsv="data/full_data/train.csv"):
             final_list.append({"text": text, "label": label})
     data_df = pd.DataFrame(final_list)
     data_df.to_csv(pathcsv, index=False)
-
-
-
-# Lemmatizer
-
-
 
 def split_by_label(data_df, train_split=0.8):
     by_label = collections.defaultdict(list)
@@ -99,12 +91,14 @@ class TextProcessor(object):
 
     def remove_irr_char(self, text):
         """ Remove irrelevant character"""
-        text = re.sub(r"[^a-z0-9A-Z*\s]",
-            " ", text)
+        text = re.sub(r"[^a-zA-Z*\s.]", " ", text)
+        text = re.sub("[.]", "", text)
+        text = re.sub(r"\n", " ", text)
         return text
 
     def remove_dupspace(self, text):
         """ Remove duplicate"""
+        text = re.sub(r"\n{2,}", " ", text)
         text = re.sub(r"\s{2,}", " ", text)
         return text
 
@@ -148,7 +142,8 @@ class TextProcessor(object):
 class DatasetProcessor(object):
     def __init__(self, data_df, processor: TextProcessor=None, labelencoder=None):
         self.data_df = data_df
-
+        self.train_df = None
+        self.val_df = None
         if processor is None:
             processor = TextProcessor()
         self.processor = processor
@@ -165,6 +160,11 @@ class DatasetProcessor(object):
     def remove_irr_char(self):
         """Remove irrelevant characters in data_df"""
         self.data_df['text'] = self.data_df['text'].apply(lambda x: self.processor.remove_irr_char(x))
+        return self
+
+    def remove_dupspace(self):
+        """ Remove duplicate"""
+        self.data_df['text'] = self.data_df['text'].apply(lambda x: self.processor.remove_dupspace(x))
         return self
 
     def lower(self):
@@ -217,11 +217,15 @@ class DatasetProcessor(object):
 
     def to_csv(self, out_path: str):
         self.data_df.to_csv(out_path, index=False)
+        if self.train_df is not None:
+            self.data_df.to_csv('data/train.csv', index=False)
+        if self.val_df is not None:
+            self.val_df.to_csv('data/val.csv', index=False)
 
     def get_df(self):
         return self.data_df
 
-    def get_text(self):
+    def get_text(self, option='train'):
         return self.data_df.text.tolist()
 
     def get_label(self):
@@ -247,7 +251,9 @@ class DatasetProcessor(object):
             val_list.extend(item_list[n_train:])
         train_df = pd.DataFrame(train_list)
         val_df = pd.DataFrame(val_list)
-        return train_df, val_df
+        self.train_df = train_df
+        self.val_df = val_df
+        return self
 
     def get_top_n_unigram(self, n=20):
         corpus = self.data_df.text.tolist()
@@ -256,7 +262,7 @@ class DatasetProcessor(object):
         sum_words = bags_of_words.sum(axis=0)
         words_freq = [(word, sum_words[0, idx]) for word,idx in vec.vocabulary_.items()]
         words_freq = sorted(words_freq, key=lambda x: x[1], reverse=True)
-        self.common_words =  words_freq[:n]
+        self.common_words = words_freq[:n]
         return words_freq[:n]
 
     def get_top_n_bigram(self, n=20):
@@ -316,19 +322,23 @@ def main():
         test_dir='data/Reuter10/test',
         cutoff=26,
     )
+    if os.path.exists('data/full_data') is False:
+        os.mkdir('data/full_data')
     processor = TextProcessor()
     train_dataset = DatasetProcessor.from_folder(path=args.train_dir, processor=processor)
     train_dataset.remove_url()\
             .remove_irr_char()\
             .lower()\
-            .to_csv('data/full_data/train.csv')
+            .remove_dupspace()\
+            .to_csv('data/full_data/data.csv')
     vocab = built_vocab(train_dataset.get_df(), cutoff=args.cutoff)
     # print(len(vocab))
 
-    test_dataset = DatasetProcessor.from_folder(path=args.train_dir, processor=processor)
+    test_dataset = DatasetProcessor.from_folder(path=args.test_dir, processor=processor)
     test_dataset.remove_url()\
             .remove_irr_char()\
             .lower()\
+            .remove_dupspace()\
             .to_csv('data/full_data/test.csv')
 if __name__ == '__main__':
     main()
