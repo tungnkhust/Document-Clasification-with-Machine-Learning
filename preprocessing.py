@@ -237,7 +237,7 @@ class DatasetProcessor(object):
         self.data_df['text'] = self.data_df['text'].apply(lambda x: self.processor.stem(x))
         return self
 
-    def lematizer(self):
+    def lematize(self):
         """Lemmatize all text in data_df"""
         self.data_df['text'] = self.data_df['text'].apply(lambda x: self.processor.lemmatize(x))
         return self
@@ -271,9 +271,9 @@ class DatasetProcessor(object):
     def to_csv(self, out_path: str):
         self.data_df.to_csv(out_path, index=False)
         if self.train_df is not None:
-            self.data_df.to_csv('data/train.csv', index=False)
+            self.train_df.to_csv('data/full_data/train.csv', index=False)
         if self.val_df is not None:
-            self.val_df.to_csv('data/val.csv', index=False)
+            self.val_df.to_csv('data/full_data/val.csv', index=False)
 
     def get_df(self):
         return self.data_df
@@ -296,6 +296,7 @@ class DatasetProcessor(object):
             by_label[row.label].append(row.to_dict())
         train_list = []
         val_list = []
+        np.random.seed(42)
         for _, item_list in sorted(by_label.items()):
             np.random.shuffle(item_list)
             n_total = len(item_list)
@@ -306,6 +307,8 @@ class DatasetProcessor(object):
         val_df = pd.DataFrame(val_list)
         self.train_df = train_df
         self.val_df = val_df
+        print('Train size:', len(self.train_df))
+        print('Val size: ', len(self.val_df))
         return self
 
     def get_top_n_unigram(self, n=20):
@@ -373,10 +376,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train_dir', type=str, default='data/Reuter10/train')
     parser.add_argument('--test_dir', type=str, default='data/Reuter10/test')
-    parser.add_argument('--cutoff', type=int, default=26)
+    parser.add_argument('--cutoff', type=int, default=0)
     parser.add_argument('--hier', type=bool, default=False)
     args = parser.parse_args()
 
+    print("Cutoff :", args.cutoff)
     if os.path.exists('data/full_data') is False:
         os.mkdir('data/full_data')
     processor = TextProcessor()

@@ -66,7 +66,7 @@ def score(y_true, y_pred):
     f1 = f1_score(y_true, y_pred, average='macro')
     precision = precision_score(y_true, y_pred, average='macro')
     recall = recall_score(y_true, y_pred, average='macro')
-    print("Accuracy: {}\tf1 score: {}\tprecision: {}\t recall: {}".format(acc, f1, precision, recall))
+    print(f"Accuracy={acc:.4f}", f"  F1 score={f1:.4f}", f"  precision={precision:.4f}", f"  recall={recall:.4f}")
     return acc, f1, precision, recall
 
 

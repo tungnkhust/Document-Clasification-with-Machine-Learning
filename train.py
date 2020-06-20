@@ -59,6 +59,7 @@ class Classifier(object):
     def train(self):
         self.vectorizer.fit(self.train_df.text.tolist())
         X = self.vectorizer.transform(self.texts)
+        print(X.shape)
         self.classifier.fit(X, self.labelencoder.transform(self.labels))
 
     def predict(self, text):
@@ -107,6 +108,8 @@ class Classifier(object):
                 test_df = pd.read_csv(test_df_or_testfile)
         else:
             test_df = test_df_or_testfile
+
+        print("Test size", len(test_df))
         texts = test_df.text.to_list()
         labels = test_df.label.to_list()
         y_labels = self.labelencoder.transform(labels)
